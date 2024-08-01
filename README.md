@@ -1,0 +1,1 @@
+This is a python script that now correctly implements simple web scraping logic, starting from a given URL and following the first link in each article. It stops when the target article is found, a loop is detected, or a predefined maximum number of articles is reached. The added delay reduces the load on Wikipedia's servers, ensuring responsible scraping behavior.
