@@ -1,0 +1,68 @@
+# Import BeautifulSoup package, used to extract data from web pages
+# Import requests package to visit URLs
+# Import time to add a delay between requests to avoid overloading the server
+
+from bs4 import BeautifulSoup
+import requests
+import time
+
+start_url = "https://en.wikipedia.org/wiki/Fort_Metal_Cross"
+target_url = "https://en.wikipedia.org/wiki/Military_structure"
+
+def continue_crawl(search_history, target_url):
+    max_url = 25
+
+    if search_history[-1] == target_url:
+        print("We've found the target article!")
+        return False
+    elif len(search_history) > max_url:
+        print("The search has gone on suspiciously long, aborting search!")
+        return False
+    elif len(search_history) != len(set(search_history)):
+        print("We've arrived at an article we've already seen, aborting search!")
+        return False
+    else:
+        return True
+
+def find_first_link(url):
+    # Get the HTML from "url", use the requests library    
+    r = requests.get(url)
+    html = r.text
+
+    # Feed the HTML into Beautiful Soup
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # Find the first link in the article
+    content_div = soup.find(id='mw-content-text').find(class_="mw-parser-output")
+    article_link = None
+
+    if content_div:
+        for element in content_div.find_all("p", recursive=False):
+            if element.find("a", recursive=False):
+                article_link = element.find("a", recursive=False).get('href')
+                break
+ 
+    if not article_link:
+        return None
+
+    # Return full URL
+    full_first_url = f"https://en.wikipedia.org{article_link}"
+    return full_first_url
+
+article_chain = [start_url]
+
+while continue_crawl(article_chain, target_url):
+    # Download HTML of the last article in article_chain
+    print(article_chain[-1])
+    
+    # Find the first link in that HTML
+    first_link = find_first_link(article_chain[-1])
+
+    # Add the first link to article_chain
+    if not first_link:
+        print("We've arrived at an article with no links, aborting search!")
+        break
+    article_chain.append(first_link)
+
+    # Delay for about two seconds
+    time.sleep(2)
